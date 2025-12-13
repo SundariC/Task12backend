@@ -2,6 +2,7 @@ import User from "../Models/userSchema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import sendEmail from "../Utils/mailer.js"
 
 dotenv.config();
 
@@ -71,5 +72,54 @@ export const login = async (req, res) => {
   }
 };
 
+//Forgot Password
+export const forgotPassword = async (req, res) => {
+    try {
+       const { email } = req.body;
+       const user = await User.findOne({ email });
+       if (!user) {
+        return res.status(404).json({ message: "User not found" })
+       }
+       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+        });
+       await sendEmail(
+        user.email,
+        "Password Reset Link",
+        `You're receiving email because you have requested to reset your password. Please click the following link to reset your password: http://localhost:5173/reset-password/${user._id}/${token},
+        If you did not request this, please ignore this email.`
+       );
+       res.status(200).json({ message: "Email sent successfully" })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error in forgot password", error: error })
+    }
+}
+
 //Reset Password
+export const resetPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const { id, token } = req.params;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+       if (!decoded) {
+        return res.status(401).json({ message: "invalid token"});
+       } 
+       const hashedPassword = await bcrypt.hash(password, 10);
+       const updatedUser = await User.findByIdAndUpdate(
+        id,
+        { password: hashedPassword },
+        { new: true }
+       );
+       res.status(200).json({ message: "Password reset successfully", data: updatedUser})
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message })
+    }
+}
 
