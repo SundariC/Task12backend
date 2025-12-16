@@ -69,20 +69,23 @@ export const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    //create token
+
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    //send email
     await sendEmail(
       user.email,
-      "Password Reset link",
-      `You are receiving this email because you have requested to reset your password.
-       Please click the following link to reset your password: https://task12frontend.netlify.app/reset-password${user._id}/${token}
-       If you did not request this, please ignore this email.`
+      "Password Reset Link",
+      `You requested a password reset.
+      Click the link below to reset your password:
+      https://task12frontend.netlify.app/reset-password/${user._id}/${token}
+      If you did not request this, please ignore this email.`
     );
-    res.status(200).json({ message: "Email sent successfully" });
+
+    res.status(200).json({
+      message: "Password reset link sent to your email",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -99,25 +102,24 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    
+
     //verify token
-    const decoded = jwt.verify(token,process.env.JWT_SECRET);
-    if(!decoded){
-      return res.status(401).json({message:"Invalid token"});
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(401).json({ message: "Invalid token" });
     }
     //hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-   
+
     //update the user password in db
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { password: hashedPassword },
       { new: true }
     );
-    res.status(200).json(
-      { message: "Password reset successfully", data: updatedUser }
-    )
-    
+    res
+      .status(200)
+      .json({ message: "Password reset successfully", data: updatedUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
