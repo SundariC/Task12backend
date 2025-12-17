@@ -10,7 +10,7 @@ const app= express();
 
 app.use(express.json());
 app.use(cors({
-origin:"https://task12frontend.netlify.app"}))
+origin:"https://task12frontend.netlify.app"}));
 
 connectDB();
 
