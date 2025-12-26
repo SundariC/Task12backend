@@ -21,7 +21,7 @@ app.use(
 connectDB();
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Backend 🚀");
+  res.send("Welcome to Backend ");
 });
 
 app.use("/api/auth", authRoute);
