@@ -79,7 +79,7 @@ export const forgotPassword = async (req, res) => {
       "Password Reset Link",
       `You requested a password reset.
       Click the link below to reset your password:
-      https://task12frontend.netlify.app/reset-password/${user._id}/${token}
+      https://task12frontend.vercel.app/reset-password/${user._id}/${token}
       If you did not request this, please ignore this email.`
     );
 
